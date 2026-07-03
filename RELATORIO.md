@@ -104,6 +104,14 @@ As figuras a seguir foram geradas automaticamente e estão disponíveis em alta 
 
 **Mapa de calor: publicações por grupo e ano.** Cada célula indica o número de publicações de um grupo em um determinado ano; a intensidade da cor é proporcional ao volume. A célula mais intensa corresponde a **NLP2 em 2023** (60 publicações), responsável por boa parte do pico geral observado na Figura 3. O mapa também revela a entrada mais tardia de alguns grupos — MClimate, OceanML e PROINDL só registram publicações a partir de 2023 —, enquanto NLP2 mantém produção em todo o período e AI HEALTH concentra sua produção em 2023 (37 publicações), sem registros em 2024.
 
+### Figura 12 — Composição de equipe por grupo (2021–2025)
+
+![Composição de equipe por grupo do C4AI, 2021–2025 — bolha grupo × ano, tamanho e cor por total de pesquisadores](figuras/12_composicao_equipe_bolhas.png)
+
+**Composição de equipe por grupo do C4AI, 2021–2025.** Figura-par da Figura 4: mesma grade grupo × ano, com o tamanho e a cor da bolha (escala viridis) indicando o total de pesquisadores declarado no relatório anual à FAPESP, em vez do número de publicações. Marcadores em × cinza indicam grupos sem capítulo de equipe próprio naquele relatório — dado ausente, não equipe de tamanho zero. NLP2 lidera com folga em todos os anos (entre 93 e 110 pesquisadores), acompanhando sua liderança em produção observada na Figura 4; AI HEALTH deixa de ter capítulo próprio a partir de 2024, coincidindo com a queda de suas publicações a zero no mesmo ano. O eixo do ano segue o período do relatório à FAPESP (ago. ano−1–jul. ano), escala distinta do ano civil de publicação usado na Figura 4; as duas não foram alinhadas célula a célula e permanecem como leituras complementares, não sobrepostas. Células marcadas com "*" agregam mais de uma frente de pesquisa sob uma única contagem de equipe no relatório de origem, ou registram divergência entre o texto do relatório e a contagem nominal (ver nota metodológica na própria figura).
+
+*Fonte dos dados de equipe: seções "Human resources" (relatórios 2021–2022) e "Team" (relatórios 2023–2025) dos relatórios científicos do C4AI à FAPESP, curadoria manual tabulada e gerada por [`equipe_composicao.py`](equipe_composicao.py).*
+
 ### Figura 5 — Evolução temporal de todos os grupos
 
 ![Evolução temporal de todos os grupos de pesquisa](figuras/5_evolucao_todos_grupos.png)
