@@ -89,7 +89,7 @@ Figura-par do heatmap de publicações (Figura 4): mesma grade grupo × ano, com
 python equipe_composicao.py
 ```
 
-> Dados embutidos no próprio script (`TOTAIS`), com notas metodológicas para células que agregam mais de uma frente de pesquisa ou apresentam divergência entre o relatório e a contagem nominal. Saída: `12_composicao_equipe_bolhas.png` e `c4ai_composicao_equipe.xlsx` (tabela + notas).
+> Dados embutidos no próprio script (`TOTAIS`), com notas metodológicas para células que agregam mais de uma frente de pesquisa ou apresentam divergência entre o relatório e a contagem nominal. Saída: `12_composicao_equipe_bolhas.png`, `13_composicao_equipe_streamgraph.png` (forma alternativa/não convencional dos mesmos dados) e `c4ai_composicao_equipe.xlsx` (tabela + notas).
 
 Saídas em `output/coword/`: `10_rede_coword.png`, `11_rede_coword_temporal.png`, `rede_coword_interativa.html` e tabelas (`coword_arestas.xlsx`, `coword_nos_comunidades.xlsx`, `coword_termos_por_periodo.xlsx`).
 
@@ -120,10 +120,11 @@ c4ai-publications/
 ├── requirements.txt
 ├── .gitignore
 ├── README.md
-├── figuras/                   # figuras usadas no relatório (1–12)
+├── figuras/                   # figuras usadas no relatório (1–13)
 └── output/                    # gerado automaticamente pelas análises
     ├── 1_ranking_grupos.png … 9_analise_concentracao.png
     ├── 12_composicao_equipe_bolhas.png
+    ├── 13_composicao_equipe_streamgraph.png
     ├── c4ai_dados_completos_limpo.xlsx
     ├── c4ai_produtividade_todos_grupos.xlsx
     ├── c4ai_matriz_grupo_ano.xlsx

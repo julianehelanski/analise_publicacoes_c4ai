@@ -112,6 +112,12 @@ As figuras a seguir foram geradas automaticamente e estão disponíveis em alta 
 
 *Fonte dos dados de equipe: seções "Human resources" (relatórios 2021–2022) e "Team" (relatórios 2023–2025) dos relatórios científicos do C4AI à FAPESP, curadoria manual tabulada e gerada por [`equipe_composicao.py`](equipe_composicao.py).*
 
+### Figura 13 — Composição de equipe por grupo: streamgraph (alternativa não convencional)
+
+![Streamgraph da composição de equipe por grupo do C4AI, 2021–2025](figuras/13_composicao_equipe_streamgraph.png)
+
+**Composição de equipe por grupo do C4AI, 2021–2025 — streamgraph.** Forma alternativa à Figura 12 para os mesmos dados: cada grupo é uma faixa cuja largura é o total de pesquisadores, empilhadas com linha de base simétrica (estilo *ThemeRiver*) e curvas suavizadas por interpolação PCHIP entre os cinco pontos anuais conhecidos — um recurso visual do formato, que não indica medição contínua entre relatórios. O gráfico evidencia visualmente a trajetória do centro: o predomínio de NLP2 ao longo de todo o período, o encolhimento conjunto de AGRIBIO, AI HEALTH e HUMANITIES a partir de 2023, e a emergência de PROINDL, OceanML e MClimate nos dois últimos anos. **Ressalva importante**: diferentemente da Figura 12, a largura zero aqui não distingue "grupo sem capítulo de equipe próprio nesse ano" de "zero pesquisadores" — este gráfico é deliberadamente impressionista e não substitui a leitura célula a célula da Figura 12, que mantém o símbolo de exceção para dado ausente.
+
 ### Figura 5 — Evolução temporal de todos os grupos
 
 ![Evolução temporal de todos os grupos de pesquisa](figuras/5_evolucao_todos_grupos.png)

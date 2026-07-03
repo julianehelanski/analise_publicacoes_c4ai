@@ -31,6 +31,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.colors import to_rgb
+from scipy.interpolate import PchipInterpolator
 
 # ──────────────────────────────────────────────────────────────────────────────
 # DADOS
@@ -89,6 +91,19 @@ NOTAS_CELULAS = {
 }
 
 CELULAS_COM_NOTA = set(NOTAS_CELULAS.keys())
+
+# Paleta categórica Okabe-Ito (colorblind-safe), ordem fixa alinhada a GRUPOS —
+# a mesma paleta-mestra usada nas figuras de rede/trajetória da tese (estilo_rede.py).
+CORES_OKABE_ITO = {
+    "AGRIBIO":    "#0072B2",  # azul
+    "AI HEALTH":  "#E69F00",  # laranja
+    "HUMANITIES": "#009E73",  # verde
+    "KEML":       "#CC79A7",  # magenta
+    "MClimate":   "#56B4E9",  # azul claro
+    "NLP2":       "#D55E00",  # vermelho
+    "OceanML":    "#F0E442",  # amarelo
+    "PROINDL":    "#999999",  # cinza
+}
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -210,6 +225,97 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
     save(fig, outdir, "12_composicao_equipe_bolhas.png")
 
 
+def plot_composicao_streamgraph(totais: pd.DataFrame, outdir: Path):
+    """Alternativa não convencional à bolha: rio temporal (streamgraph), baseline
+    'sym' (silhueta centrada, estilo ThemeRiver). Cada grupo é uma faixa cuja
+    largura é o total de pesquisadores; grupo sem capítulo próprio afina até
+    largura zero, em vez de precisar de um marcador de exceção.
+
+    Limite metodológico herdado da própria forma: como o rio não distingue
+    "zero pesquisadores" de "capítulo ausente/fundido em outro", a leitura fina
+    de cada célula continua sendo tarefa da Figura 12 (bolhas) — este gráfico é
+    deliberadamente impressionista, não substitui a leitura célula a célula.
+    """
+    grupos = list(totais.index)
+    anos = np.array(totais.columns, dtype=float)
+
+    # NaN -> 0 apenas para a pilha visual (ver ressalva acima e na legenda da figura)
+    y_conhecido = totais.fillna(0.0).values
+
+    anos_finos = np.linspace(anos.min(), anos.max(), 400)
+    y_fino = np.vstack([
+        PchipInterpolator(anos, y_conhecido[i])(anos_finos).clip(min=0)
+        for i in range(len(grupos))
+    ])
+
+    # baseline 'sym' replicado manualmente (mesma fórmula do stackplot do matplotlib)
+    # para poder localizar o centro de cada faixa e rotulá-la diretamente.
+    cumsum = np.cumsum(y_fino, axis=0)
+    linha_base = -np.sum(y_fino, axis=0) * 0.5
+    topos = linha_base + cumsum
+    bases = np.vstack([linha_base, topos[:-1]])
+    centros = (bases + topos) / 2
+
+    cores = [CORES_OKABE_ITO[g] for g in grupos]
+
+    fig, ax = plt.subplots(figsize=(16, 9))
+    ax.stackplot(anos_finos, y_fino, colors=cores, baseline="sym", linewidth=0)
+
+    margem = (anos_finos.max() - anos_finos.min()) * 0.05
+    for i, grupo in enumerate(grupos):
+        idx_max = np.argmax(y_fino[i])
+        if y_fino[i, idx_max] < 1:  # grupo nunca aparece com peso visível
+            continue
+        cor_fundo = to_rgb(cores[i])
+
+        # evita rótulo cortado na borda esquerda/direita da figura
+        x_rotulo = anos_finos[idx_max]
+        ha = "center"
+        if x_rotulo <= anos_finos.min() + margem:
+            x_rotulo = anos_finos.min() + margem
+            ha = "left"
+        elif x_rotulo >= anos_finos.max() - margem:
+            x_rotulo = anos_finos.max() - margem
+            ha = "right"
+
+        ax.text(
+            x_rotulo, centros[i, idx_max], grupo,
+            ha=ha, va="center", fontsize=9.5,
+            color=cor_texto_sobre(cor_fundo), zorder=4,
+        )
+
+    ax.set_xticks(anos)
+    ax.set_xticklabels([f"{int(a)}" for a in anos], color=COR_TEXTO)
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    ax.set_xlabel("Ano do relatório FAPESP (período ago. ano−1–jul. ano)", color=COR_TEXTO)
+    ax.tick_params(colors=COR_TEXTO)
+
+    # sem título embutido na imagem: a legenda do LaTeX/Markdown titula a figura
+
+    handles = [plt.Rectangle((0, 0), 1, 1, color=CORES_OKABE_ITO[g]) for g in grupos]
+    ax.legend(
+        handles, grupos, loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=4,
+        frameon=False, fontsize=10, labelcolor=COR_TEXTO, title="Grupo de Pesquisa",
+        title_fontsize=10,
+    )
+
+    nota_rodape = (
+        "Largura da faixa = total de pesquisadores; curvas suavizadas (interpolação PCHIP) entre os 5 pontos "
+        "anuais conhecidos — recurso visual do streamgraph, não medição contínua entre relatórios.\n"
+        "Largura zero não distingue \"grupo sem capítulo próprio nesse ano\" de \"zero pesquisadores\": ao contrário "
+        "da Figura 12, este gráfico não tem símbolo de exceção para dado ausente — ver Figura 12 para a leitura célula a célula.\n"
+        "Escala de ano distinta da usada no heatmap de publicações (ano civil, 2020–2024): aqui o ano é o período de "
+        "relatório à FAPESP (ago.–jul.)."
+    )
+    fig.text(0.02, -0.09, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
+
+    plt.tight_layout()
+    save(fig, outdir, "13_composicao_equipe_streamgraph.png")
+
+
 def export_tabela(totais: pd.DataFrame, outdir: Path):
     tabela = totais.reset_index().rename(columns={"index": "Grupo"})
     path = outdir / "c4ai_composicao_equipe.xlsx"
@@ -227,6 +333,7 @@ def main():
         outdir = Path(outdir_name)
         outdir.mkdir(parents=True, exist_ok=True)
         plot_composicao_bolhas(TOTAIS, outdir)
+        plot_composicao_streamgraph(TOTAIS, outdir)
 
     export_tabela(TOTAIS, Path("output"))
     print("\nComposição de equipe concluída.\n")
