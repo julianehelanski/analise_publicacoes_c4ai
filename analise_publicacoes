@@ -213,11 +213,18 @@ def plot_temporal(pub_ano: pd.Series, outdir: Path):
     save(fig, outdir, "3_evolucao_temporal_geral.png")
 
 
+# Paleta sequencial própria desta figura (publicações): rampa clara→escura
+# ancorada no vermelho Okabe-Ito (#D55E00), a mesma paleta categórica mestra da
+# identidade visual da tese. Não usa viridis — cada figura tem sua própria rampa,
+# já que publicações e composição de equipe são análises distintas.
+CMAP_PUBLICACOES = sns.light_palette("#D55E00", as_cmap=True)
+
+
 def plot_heatmap(df: pd.DataFrame, outdir: Path):
     crosstab = pd.crosstab(df["Grupo"], df["Ano"])
     fig, ax = plt.subplots(figsize=(16, 10))
     sns.heatmap(
-        crosstab, annot=True, fmt="d", cmap="YlOrRd",
+        crosstab, annot=True, fmt="d", cmap=CMAP_PUBLICACOES,
         cbar_kws={"label": "Número de Publicações"},
         linewidths=0.5, linecolor="gray", ax=ax,
     )

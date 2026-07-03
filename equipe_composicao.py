@@ -31,6 +31,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from matplotlib.colors import to_rgb
 from scipy.interpolate import PchipInterpolator
 
@@ -110,13 +111,17 @@ CORES_OKABE_ITO = {
 # PLOT
 # ──────────────────────────────────────────────────────────────────────────────
 
-# ── Identidade visual da tese (estilo_rede.py: viridis sequencial, "bolinha" com
-# borda branca, DejaVu Sans, tinta cinza #404040 sem negrito, nota em itálico
-# #8a8a8a, sem título embutido na imagem — a legenda do LaTeX titula) ──────────
+# ── Identidade visual da tese: "bolinha" com borda branca, DejaVu Sans, tinta
+# cinza #404040 sem negrito, nota em itálico #8a8a8a, sem título embutido na
+# imagem (a legenda do LaTeX titula). Paleta sequencial própria desta figura:
+# rampa clara→escura ancorada no azul Okabe-Ito (#0072B2) — não usa viridis, e é
+# distinta da rampa do heatmap de publicações (vermelho), já que compõem
+# análises diferentes (equipe vs. produção). ─────────────────────────────────
 
 COR_TEXTO = "#404040"
 COR_NOTA = "#8a8a8a"
 COR_AUSENTE = "#999999"  # cinza da paleta categórica Okabe-Ito (slot neutro)
+CMAP_EQUIPE = sns.light_palette("#0072B2", as_cmap=True)
 
 plt.rcParams["font.family"] = "DejaVu Sans"
 
@@ -143,7 +148,7 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
 
     valores = totais.values.astype(float)
     vmin, vmax = np.nanmin(valores), np.nanmax(valores)
-    cmap = plt.get_cmap("viridis")
+    cmap = CMAP_EQUIPE
 
     # tamanho da bolha por área (não por raio), para não exagerar a diferença visual
     tamanho_min, tamanho_max = 400, 4200
