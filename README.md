@@ -83,13 +83,23 @@ python coword_analysis.py --no-html               # só PNG
 
 ### 4. Composição de equipe (bolha grupo × ano)
 
-Figura-par do heatmap de publicações (Figura 4): mesma grade grupo × ano, com o tamanho e a cor da bolha indicando o total de pesquisadores por grupo, a partir da curadoria manual dos relatórios anuais do C4AI à FAPESP (2021–2025):
+Figura-par do heatmap de publicações (Figura 4): mesma grade grupo × ano, com o tamanho da bolha indicando o total de pesquisadores por grupo e a cor identificando categoricamente o grupo (paleta Okabe-Ito, ordem alfabética), a partir da curadoria manual dos relatórios anuais do C4AI à FAPESP (2021–2025):
 
 ```bash
 python equipe_composicao.py
 ```
 
 > Dados embutidos no próprio script (`TOTAIS`), com notas metodológicas para células que agregam mais de uma frente de pesquisa ou apresentam divergência entre o relatório e a contagem nominal. Saída: `12_composicao_equipe_bolhas.png`, `13_composicao_equipe_streamgraph.png` (forma alternativa/não convencional dos mesmos dados) e `c4ai_composicao_equipe.xlsx` (tabela + notas).
+
+### 5. Matriz de bolhas de publicações (variante da Figura 4)
+
+Variante em bolhas do heatmap de publicações, usada no capítulo da tese: mesma grade grupo × ano, com o tamanho da bolha indicando o número de publicações e a cor identificando categoricamente o grupo (paleta Okabe-Ito, ordem por produtividade — distinta da ordem usada na Figura 12, para diferenciar as duas matrizes):
+
+```bash
+python bolhas_publicacoes.py
+```
+
+> Lê `output/c4ai_matriz_grupo_ano.xlsx` (gerado por `analise_publicacoes`). Saída: `4_heatmap_grupo_ano_bolhas.png`.
 
 Saídas em `output/coword/`: `10_rede_coword.png`, `11_rede_coword_temporal.png`, `rede_coword_interativa.html` e tabelas (`coword_arestas.xlsx`, `coword_nos_comunidades.xlsx`, `coword_termos_por_periodo.xlsx`).
 
@@ -114,6 +124,7 @@ c4ai-publications/
 ├── analise_publicacoes        # análise bibliométrica principal (Figuras 1–9)
 ├── coword_analysis.py         # co-word analysis / rede de co-ocorrência (Figuras 10–11)
 ├── equipe_composicao.py       # composição de equipe por grupo, curadoria manual (Figura 12)
+├── bolhas_publicacoes.py      # matriz de bolhas de publicações, variante da Figura 4
 ├── enrich_metadata.py         # enriquecimento opcional via OpenAlex (abstracts/keywords)
 ├── documento_analise.tex      # relatório em LaTeX
 ├── RELATORIO.md               # relatório em Markdown (com inventário de figuras)
