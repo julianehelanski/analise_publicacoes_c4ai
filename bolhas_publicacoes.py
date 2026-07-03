@@ -134,23 +134,39 @@ def plot_bolhas_publicacoes(matriz: pd.DataFrame, outdir: Path):
     ax.grid(True, alpha=0.2, linewidth=0.8, color=COR_NOTA)
     ax.set_axisbelow(True)
 
-    # legenda de tamanho (cor neutra: aqui a cor do marcador identifica o
-    # grupo, já dado pelo eixo y — a legenda trata apenas da escala de tamanho).
-    # Escala reduzida (não literalmente igual à do gráfico) só para caber sem
-    # sobrepor o texto — a proporção relativa entre os três pontos é preservada.
+    # legenda de cor (uma bolha por grupo, na cor efetivamente usada na matriz)
+    handles_grupo = [
+        ax.scatter([], [], s=180, color=CORES_POR_GRUPO[g], edgecolors="white",
+                   linewidths=1.2, label=g)
+        for g in grupos
+    ]
+    legenda_grupo = ax.legend(
+        handles=handles_grupo, loc="upper center", bbox_to_anchor=(0.5, -0.10),
+        ncol=4, frameon=False, fontsize=9.5, labelcolor=COR_TEXTO,
+        columnspacing=1.6, handletextpad=0.8, title="Grupo de pesquisa (cor)",
+        title_fontsize=10,
+    )
+    ax.add_artist(legenda_grupo)
+
+    # legenda de tamanho (cor neutra: aqui a cor já foi usada para o grupo
+    # acima — a legenda de tamanho trata só da escala). Escala reduzida (não
+    # literalmente igual à do gráfico) só para caber sem sobrepor o texto —
+    # a proporção relativa entre os três pontos é preservada.
     legenda_tamanho_min, legenda_tamanho_max = 90, 700
+    handles_tamanho = []
     for valor_ref in (10, 30, 60):
         frac = (valor_ref - vmin) / (vmax - vmin)
         frac = min(max(frac, 0), 1)
         tamanho = legenda_tamanho_min + frac * (legenda_tamanho_max - legenda_tamanho_min)
-        ax.scatter(
+        handles_tamanho.append(ax.scatter(
             [], [], s=tamanho, color=COR_LEGENDA_TAMANHO, edgecolors="white",
             linewidths=1.5, label=f"{valor_ref} publicações",
-        )
-    legenda = ax.legend(
-        loc="upper center", bbox_to_anchor=(0.5, -0.10), ncol=3, frameon=False,
-        fontsize=10, labelcolor=COR_TEXTO, columnspacing=3.0, handletextpad=1.0,
-        borderaxespad=1.5,
+        ))
+    legenda_tamanho = ax.legend(
+        handles=handles_tamanho, loc="upper center", bbox_to_anchor=(0.5, -0.24),
+        ncol=3, frameon=False, fontsize=10, labelcolor=COR_TEXTO,
+        columnspacing=3.0, handletextpad=1.0,
+        title="Tamanho da bolha", title_fontsize=10,
     )
 
     nota_rodape = (
@@ -159,7 +175,7 @@ def plot_bolhas_publicacoes(matriz: pd.DataFrame, outdir: Path):
         "Atribuição de cor por grupo distinta da usada na Figura 12 (composição de equipe), "
         "para diferenciar visualmente as duas matrizes de bolhas."
     )
-    fig.text(0.02, -0.08, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
+    fig.text(0.02, -0.30, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
 
     plt.tight_layout()
     save(fig, outdir, "4_heatmap_grupo_ano_bolhas.png")

@@ -206,22 +206,43 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
     ax.grid(True, alpha=0.2, linewidth=0.8, color=COR_NOTA)
     ax.set_axisbelow(True)
 
-    # legenda de tamanho (3 pontos de referência, cor neutra: aqui a cor do
-    # marcador identifica o grupo, já dado pelo eixo y — a legenda de tamanho
-    # não deve ser confundida com uma quarta cor de grupo)
+    # legenda de cor (uma bolha por grupo, na cor efetivamente usada na matriz)
+    handles_grupo = [
+        ax.scatter([], [], s=200, color=CORES_OKABE_ITO[g], edgecolors="white",
+                   linewidths=1.2, label=g)
+        for g in grupos
+    ]
+    legenda_grupo = ax.legend(
+        handles=handles_grupo, loc="upper center", bbox_to_anchor=(0.5, -0.10),
+        ncol=4, frameon=False, fontsize=9.5, labelcolor=COR_TEXTO,
+        columnspacing=1.6, handletextpad=0.8, title="Grupo de pesquisa (cor)",
+        title_fontsize=10,
+    )
+    ax.add_artist(legenda_grupo)
+
+    # legenda de tamanho (3 pontos de referência, cor neutra: aqui a cor já
+    # foi usada para o grupo acima — a legenda de tamanho trata só da escala).
+    # Escala reduzida (não literalmente igual à do gráfico) só para caber sem
+    # sobrepor o texto — a proporção relativa entre os três pontos é preservada.
+    legenda_tamanho_min, legenda_tamanho_max = 90, 700
+    handles_tamanho = []
     for valor_ref in (20, 60, 100):
         frac = (valor_ref - vmin) / (vmax - vmin)
         frac = min(max(frac, 0), 1)
-        tamanho = tamanho_min + frac * (tamanho_max - tamanho_min)
-        ax.scatter(
+        tamanho = legenda_tamanho_min + frac * (legenda_tamanho_max - legenda_tamanho_min)
+        handles_tamanho.append(ax.scatter(
             [], [], s=tamanho, color=COR_LEGENDA_TAMANHO, edgecolors="white",
             linewidths=1.5, label=f"{valor_ref} pesquisadores",
-        )
-    ax.scatter([], [], s=90, marker="x", color=COR_AUSENTE, linewidths=1.5,
-               label="sem capítulo de equipe próprio")
-    legenda = ax.legend(
-        loc="upper center", bbox_to_anchor=(0.5, -0.10), ncol=4, frameon=False,
-        fontsize=10, labelcolor=COR_TEXTO,
+        ))
+    handles_tamanho.append(ax.scatter(
+        [], [], s=90, marker="x", color=COR_AUSENTE, linewidths=1.5,
+        label="sem capítulo de equipe próprio",
+    ))
+    legenda_tamanho = ax.legend(
+        handles=handles_tamanho, loc="upper center", bbox_to_anchor=(0.5, -0.22),
+        ncol=4, frameon=False, fontsize=10, labelcolor=COR_TEXTO,
+        columnspacing=2.5, handletextpad=1.0, title="Tamanho da bolha",
+        title_fontsize=10,
     )
 
     nota_rodape = (
@@ -233,7 +254,7 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
         "Escala de ano distinta da usada no heatmap de publicações (ano civil, 2020–2024): "
         "aqui o ano é o período de relatório à FAPESP (ago.–jul.), não alinhado célula a célula com a produção."
     )
-    fig.text(0.02, -0.06, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
+    fig.text(0.02, -0.28, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
 
     plt.tight_layout()
     save(fig, outdir, "12_composicao_equipe_bolhas.png")
