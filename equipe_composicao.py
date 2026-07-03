@@ -3,31 +3,28 @@
 equipe_composicao.py — Composição de equipe por grupo do C4AI (2021–2025)
 ==========================================================================
 Figura-par da matriz de bolhas de publicações (4_heatmap_grupo_ano_bolhas.png /
-bolhas_publicacoes.py): mesma grade grupo × ano, com o tamanho E a cor da bolha
-indicando o nº de pesquisadores declarado no relatório anual à FAPESP (em vez do
-nº de publicações), numa escala sequencial monocromática (branco ao vermelho
-Okabe-Ito #D55E00), não viridis. A cor não identifica o grupo de pesquisa, esse
-já dado pelo eixo y; a escala está ancorada num matiz diferente do usado na
-figura-par de publicações (azul Okabe-Ito), para que as duas matrizes de bolhas
-fiquem diferenciáveis entre si mesmo compartilhando a mesma paleta-mestra da
-tese. O gráfico de streamgraph (Figura 13, alternativa aos mesmos dados) segue
-usando a paleta categórica Okabe-Ito por grupo, sem mudança.
+bolhas_publicacoes.py). Mesma diagramação de heatmap-bolhas com colorbar vertical
+à direita, sem números dentro das bolhas — a mesma da versão viridis anterior,
+apenas com uma escala de cor diferente. O tamanho E a cor da bolha indicam o
+total de pesquisadores declarado no relatório anual à FAPESP (em vez do número
+de publicações), numa escala sequencial monocromática branco -> vermelho
+Okabe-Ito (#D55E00). O matiz vermelho a diferencia da figura-par de publicações,
+que usa a escala branco -> azul Okabe-Ito.
 
 Fonte dos dados: seções "Human resources" (relatórios 2021–2022) e "Team"
-(relatórios 2023–2025) de cada capítulo dos relatórios científicos do C4AI à FAPESP,
-conforme tabulado em composicao_equipe_c4ai_2021_2025.md (curadoria manual).
+(relatórios 2023–2025) de cada capítulo dos relatórios científicos do C4AI à
+FAPESP, conforme tabulado em composicao_equipe_c4ai_2021_2025.md (curadoria
+manual).
 
-Observações metodológicas importantes (ver notas no próprio gráfico):
+Observações metodológicas importantes:
 
 - O ano aqui é o ANO DO RELATÓRIO FAPESP (período ago. ano-1–jul. ano), não o ano
-  civil de publicação usado no heatmap (2020–2024). As duas escalas temporais NÃO
-  foram forçadas a coincidir célula a célula — cada figura mantém seu próprio eixo,
-  e a leitura comparativa entre as duas fica a cargo do texto da tese.
-- Células em branco (marcador cinza) = grupo sem capítulo de equipe próprio no
-  relatório daquele ano (não é equipe de tamanho zero: é dado ausente).
-- Células marcadas com "*" agregam mais de um subdesafio sob uma única contagem de
-  equipe no relatório de origem (ver NOTAS_CELULAS abaixo) — não é possível
-  desagregar sem contagem nominal própria.
+  civil de publicação usado na figura-par (2020–2024). As duas escalas temporais
+  NÃO foram forçadas a coincidir célula a célula.
+- Marcadores em × cinza = grupo sem capítulo de equipe próprio nesse relatório
+  (dado ausente, não equipe de tamanho zero).
+- Células marcadas com "*" agregam mais de um subdesafio sob uma única contagem
+  de equipe no relatório de origem (ver NOTAS_CELULAS abaixo).
 
 Uso:
     python equipe_composicao.py
@@ -38,7 +35,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.colors import LinearSegmentedColormap, to_rgb
+from matplotlib.colors import LinearSegmentedColormap, Normalize, to_rgb
+from matplotlib.cm import ScalarMappable
 from scipy.interpolate import PchipInterpolator
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -97,62 +95,45 @@ NOTAS_CELULAS = {
     ),
 }
 
-CELULAS_COM_NOTA = set(NOTAS_CELULAS.keys())
-
-# Paleta categórica Okabe-Ito (colorblind-safe), ordem fixa alinhada a GRUPOS —
-# a mesma paleta-mestra usada nas figuras de rede/trajetória da tese (estilo_rede.py).
+# Paleta categórica Okabe-Ito (colorblind-safe), usada só no streamgraph
+# (Figura 13, alternativa aos mesmos dados). A matriz de bolhas (Figura 12)
+# não usa cor por grupo — usa a escala sequencial CMAP_SEQUENCIAL_EQUIPE.
 CORES_OKABE_ITO = {
-    "AGRIBIO":    "#0072B2",  # azul
-    "AI HEALTH":  "#E69F00",  # laranja
-    "HUMANITIES": "#009E73",  # verde
-    "KEML":       "#CC79A7",  # magenta
-    "MClimate":   "#56B4E9",  # azul claro
-    "NLP2":       "#D55E00",  # vermelho
-    "OceanML":    "#F0E442",  # amarelo
-    "PROINDL":    "#999999",  # cinza
+    "AGRIBIO":    "#0072B2",
+    "AI HEALTH":  "#E69F00",
+    "HUMANITIES": "#009E73",
+    "KEML":       "#CC79A7",
+    "MClimate":   "#56B4E9",
+    "NLP2":       "#D55E00",
+    "OceanML":    "#F0E442",
+    "PROINDL":    "#999999",
 }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# PLOT
+# ESTILO
 # ──────────────────────────────────────────────────────────────────────────────
-
-# ── Identidade visual da tese (estilo_rede.py: Okabe-Ito categórico p/ figuras
-# de rede/streamgraph, "bolinha" com borda branca, DejaVu Sans, tinta cinza
-# #404040 sem negrito, nota em itálico #8a8a8a, sem título embutido na imagem
-# — a legenda do LaTeX titula). Na matriz de bolhas (Figura 12), a cor segue
-# uma escala sequencial (branco-vermelho, ancorada no vermelho Okabe-Ito), não
-# mais categórica por grupo nem viridis. ──────────────────────────────────────
 
 COR_TEXTO = "#404040"
 COR_NOTA = "#8a8a8a"
 COR_AUSENTE = "#999999"  # cinza da paleta categórica Okabe-Ito (slot neutro)
 
 # Escala sequencial monocromática (branco -> vermelho Okabe-Ito #D55E00), não
-# viridis. Ancorada em cor distinta da usada em bolhas_publicacoes.py (azul
-# Okabe-Ito), para diferenciar as duas matrizes de bolhas entre si.
+# viridis. Matiz distinto do usado em bolhas_publicacoes.py (azul Okabe-Ito
+# #0072B2), para diferenciar as duas matrizes de bolhas entre si.
 COR_ANCORA_EQUIPE = "#D55E00"
 CMAP_SEQUENCIAL_EQUIPE = LinearSegmentedColormap.from_list(
     "vermelho_okabe_ito", ["#ffffff", COR_ANCORA_EQUIPE],
 )
 
+# Piso de saturação da cor no valor mínimo (só afeta a cor, não o tamanho).
+COR_FRAC_MIN = 0.18
+
 plt.rcParams["font.family"] = "DejaVu Sans"
 
 
-COR_FRAC_MIN = 0.18  # piso de saturação: evita bolhas quase brancas (invisíveis sobre o fundo)
-
-
-def cor_escala(frac: float, cmap) -> tuple:
-    """Mapeia frac (0-1) na escala, com piso de saturação para o valor mínimo
-    não desaparecer contra o fundo branco da figura."""
-    return cmap(COR_FRAC_MIN + (1 - COR_FRAC_MIN) * frac)
-
-
 def cor_texto_sobre(cor) -> str:
-    """Réplica da regra de contraste de estilo_rede.py: branco se luminância < 0,55.
-
-    Aceita tanto uma cor hexadecimal ("#0072B2") quanto uma tupla RGB(A).
-    """
+    """Réplica da regra de contraste de estilo_rede.py: branco se luminância < 0,55."""
     r, g, b = to_rgb(cor)
     luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b
     return "white" if luminancia < 0.55 else COR_TEXTO
@@ -169,42 +150,33 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
     grupos = list(totais.index)
     anos = list(totais.columns)
 
-    fig, ax = plt.subplots(figsize=(16, 10))
+    fig, ax = plt.subplots(figsize=(11, 6))
 
     valores = totais.values.astype(float)
-    vmin, vmax = np.nanmin(valores), np.nanmax(valores)
+    vmin, vmax = float(np.nanmin(valores)), float(np.nanmax(valores))
+    norma = Normalize(vmin=vmin, vmax=vmax)
 
-    # tamanho da bolha por área (não por raio), para não exagerar a diferença visual
-    tamanho_min, tamanho_max = 400, 4200
+    tamanho_min, tamanho_max = 30, 900
 
+    xs_dado, ys_dado, tamanhos, cores = [], [], [], []
+    xs_ausente, ys_ausente = [], []
     for i, grupo in enumerate(grupos):
         for j, ano in enumerate(anos):
             total = totais.loc[grupo, ano]
-
             if pd.isna(total):
-                # dado ausente: grupo sem capítulo de equipe próprio nesse relatório
-                ax.scatter(
-                    j, i, s=90, marker="x", color=COR_AUSENTE, linewidths=1.5, zorder=2,
-                )
+                xs_ausente.append(j)
+                ys_ausente.append(i)
                 continue
+            frac = norma(float(total))
+            xs_dado.append(j)
+            ys_dado.append(i)
+            tamanhos.append(tamanho_min + frac * (tamanho_max - tamanho_min))
+            cores.append(CMAP_SEQUENCIAL_EQUIPE(COR_FRAC_MIN + (1 - COR_FRAC_MIN) * frac))
 
-            frac = (total - vmin) / (vmax - vmin)
-            tamanho = tamanho_min + frac * (tamanho_max - tamanho_min)
-            cor = cor_escala(frac, CMAP_SEQUENCIAL_EQUIPE)
-
-            ax.scatter(
-                j, i, s=tamanho, color=cor, edgecolors="white", linewidths=1.5,
-                zorder=3,
-            )
-
-            rotulo = f"{total:.0f}"
-            if (grupo, ano) in CELULAS_COM_NOTA:
-                rotulo += "*"
-
-            ax.text(
-                j, i, rotulo, ha="center", va="center", fontsize=11,
-                color=cor_texto_sobre(cor), zorder=4,
-            )
+    ax.scatter(xs_ausente, ys_ausente, s=45, marker="x", color=COR_AUSENTE,
+               linewidths=1.2, zorder=2)
+    ax.scatter(xs_dado, ys_dado, s=tamanhos, c=cores, edgecolors="white",
+               linewidths=1.0, zorder=3)
 
     ax.set_xticks(range(len(anos)))
     ax.set_xticklabels([f"{a}" for a in anos], color=COR_TEXTO)
@@ -215,54 +187,36 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
     ax.set_xlim(-0.6, len(anos) - 0.4)
     ax.set_ylim(len(grupos) - 0.4, -0.6)
 
-    ax.set_xlabel("Ano do relatório FAPESP (período ago. ano−1–jul. ano)", color=COR_TEXTO)
-    ax.set_ylabel("Grupo de Pesquisa", color=COR_TEXTO)
+    ax.set_xlabel("ano do relatório FAPESP (período ago. ano−1–jul. ano)",
+                  color=COR_TEXTO)
     ax.tick_params(colors=COR_TEXTO)
+
     for spine in ax.spines.values():
-        spine.set_color(COR_NOTA)
-
-    # sem título embutido na imagem: a legenda do LaTeX/Markdown titula a figura
-
-    ax.grid(True, alpha=0.2, linewidth=0.8, color=COR_NOTA)
+        spine.set_visible(False)
+    ax.grid(True, alpha=0.25, linewidth=0.6, color=COR_NOTA)
     ax.set_axisbelow(True)
 
-    # legenda de tamanho e cor combinadas (cada bolha de referência usa a cor
-    # que a escala sequencial atribui ao próprio valor, e não uma cor neutra).
-    # Escala de tamanho reduzida (não literalmente igual à do gráfico) só para
-    # caber sem sobrepor o texto — a proporção relativa entre os pontos é
-    # preservada; a cor de cada ponto é a exata da escala, sem redução.
-    legenda_tamanho_min, legenda_tamanho_max = 90, 700
-    handles_tamanho = []
-    for valor_ref in (20, 60, 100):
-        frac = (valor_ref - vmin) / (vmax - vmin)
-        frac = min(max(frac, 0), 1)
-        tamanho = legenda_tamanho_min + frac * (legenda_tamanho_max - legenda_tamanho_min)
-        handles_tamanho.append(ax.scatter(
-            [], [], s=tamanho, color=cor_escala(frac, CMAP_SEQUENCIAL_EQUIPE), edgecolors="white",
-            linewidths=1.5, label=f"{valor_ref} pesquisadores",
-        ))
-    handles_tamanho.append(ax.scatter(
-        [], [], s=90, marker="x", color=COR_AUSENTE, linewidths=1.5,
-        label="sem capítulo de equipe próprio",
-    ))
-    legenda_tamanho = ax.legend(
-        handles=handles_tamanho, loc="upper center", bbox_to_anchor=(0.5, -0.10),
-        ncol=4, frameon=False, fontsize=10, labelcolor=COR_TEXTO,
-        columnspacing=2.5, handletextpad=1.0, title="Tamanho e cor da bolha",
-        title_fontsize=10,
+    # colorbar vertical à direita, na mesma escala do gráfico (branco -> vermelho),
+    # com o mesmo piso de saturação COR_FRAC_MIN aplicado às bolhas.
+    cmap_display = LinearSegmentedColormap.from_list(
+        "vermelho_display",
+        [CMAP_SEQUENCIAL_EQUIPE(COR_FRAC_MIN + (1 - COR_FRAC_MIN) * t)
+         for t in np.linspace(0, 1, 256)],
     )
+    sm = ScalarMappable(norm=norma, cmap=cmap_display)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax, pad=0.02, aspect=25)
+    cbar.set_label("pesquisadores (tamanho e cor da bolha)",
+                   color=COR_TEXTO, fontsize=9.5)
+    cbar.ax.tick_params(colors=COR_TEXTO, labelsize=9)
+    cbar.outline.set_visible(False)
 
-    nota_rodape = (
-        "Tamanho e cor da bolha = total de pesquisadores (escala sequencial branco-vermelho, "
-        "não viridis). A cor não identifica o grupo de pesquisa, já dado pelo eixo y. Escala "
-        "ancorada em matiz distinto da usada na matriz de bolhas de publicações (Figura 4, "
-        "escala branco-azul), para diferenciar visualmente as duas figuras-par.\n"
-        "* célula agrega mais de uma frente sob uma única contagem de equipe no relatório de origem, "
-        "ou apresenta discrepância entre o texto do relatório e a contagem nominal — ver notas metodológicas no script.\n"
-        "Escala de ano distinta da usada no heatmap de publicações (ano civil, 2020–2024): "
-        "aqui o ano é o período de relatório à FAPESP (ago.–jul.), não alinhado célula a célula com a produção."
+    # marcador de ausência (× cinza) explicado em nota curta abaixo do eixo x
+    nota = (
+        "× = grupo sem capítulo de equipe próprio no relatório (dado ausente, não equipe de tamanho zero)."
     )
-    fig.text(0.02, -0.20, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
+    fig.text(0.02, -0.04, nota, fontsize=8.5, color=COR_NOTA, style="italic",
+             ha="left", va="top")
 
     plt.tight_layout()
     save(fig, outdir, "12_composicao_equipe_bolhas.png")
@@ -307,11 +261,10 @@ def plot_composicao_streamgraph(totais: pd.DataFrame, outdir: Path):
     margem = (anos_finos.max() - anos_finos.min()) * 0.05
     for i, grupo in enumerate(grupos):
         idx_max = np.argmax(y_fino[i])
-        if y_fino[i, idx_max] < 1:  # grupo nunca aparece com peso visível
+        if y_fino[i, idx_max] < 1:
             continue
         cor_fundo = to_rgb(cores[i])
 
-        # evita rótulo cortado na borda esquerda/direita da figura
         x_rotulo = anos_finos[idx_max]
         ha = "center"
         if x_rotulo <= anos_finos.min() + margem:
@@ -335,8 +288,6 @@ def plot_composicao_streamgraph(totais: pd.DataFrame, outdir: Path):
 
     ax.set_xlabel("Ano do relatório FAPESP (período ago. ano−1–jul. ano)", color=COR_TEXTO)
     ax.tick_params(colors=COR_TEXTO)
-
-    # sem título embutido na imagem: a legenda do LaTeX/Markdown titula a figura
 
     handles = [plt.Rectangle((0, 0), 1, 1, color=CORES_OKABE_ITO[g]) for g in grupos]
     ax.legend(
