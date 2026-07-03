@@ -83,7 +83,7 @@ python coword_analysis.py --no-html               # só PNG
 
 ### 4. Composição de equipe (bolha grupo × ano)
 
-Figura-par do heatmap de publicações (Figura 4): mesma grade grupo × ano, com o tamanho da bolha indicando o total de pesquisadores por grupo e a cor identificando categoricamente o grupo (paleta Okabe-Ito, ordem alfabética), a partir da curadoria manual dos relatórios anuais do C4AI à FAPESP (2021–2025):
+Figura-par do heatmap de publicações (Figura 4): mesma grade grupo × ano, com o tamanho e a cor da bolha indicando o total de pesquisadores por grupo (escala sequencial branco-vermelho, ancorada no vermelho Okabe-Ito, não viridis), a partir da curadoria manual dos relatórios anuais do C4AI à FAPESP (2021–2025):
 
 ```bash
 python equipe_composicao.py
@@ -93,7 +93,7 @@ python equipe_composicao.py
 
 ### 5. Matriz de bolhas de publicações (variante da Figura 4)
 
-Variante em bolhas do heatmap de publicações, usada no capítulo da tese: mesma grade grupo × ano, com o tamanho da bolha indicando o número de publicações e a cor identificando categoricamente o grupo (paleta Okabe-Ito, ordem por produtividade — distinta da ordem usada na Figura 12, para diferenciar as duas matrizes):
+Variante em bolhas do heatmap de publicações, usada no capítulo da tese: mesma grade grupo × ano, com o tamanho e a cor da bolha indicando o número de publicações (escala sequencial branco-azul, ancorada no azul Okabe-Ito, não viridis — matiz distinto do usado na Figura 12, para diferenciar as duas matrizes):
 
 ```bash
 python bolhas_publicacoes.py

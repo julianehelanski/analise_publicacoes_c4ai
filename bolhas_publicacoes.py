@@ -4,17 +4,17 @@ bolhas_publicacoes.py — Matriz de bolhas de publicações por grupo × ano (C4
 ===============================================================================
 Variante em bolhas da Figura 4 (4_heatmap_grupo_ano.png, mapa de calor), usada
 especificamente na versão do capítulo 3 da tese: mesma grade grupo × ano, com
-o tamanho da bolha indicando o número de publicações e a cor identificando
-categoricamente o grupo de pesquisa (paleta Okabe-Ito, à prova de daltonismo),
-em vez de uma escala de cor sequencial (viridis) redundante com o tamanho.
+o tamanho E a cor da bolha indicando o número de publicações no ano (escala
+sequencial monocromática, do claro ao escuro), em vez da escala viridis, que
+foge da identidade visual da tese.
 
-A ordem dos grupos (eixo y) segue o ranking de produtividade (decrescente),
-igual à Figura 1/Tabela 2 do relatório. A atribuição de cor por grupo nessa
-ordem é deliberadamente diferente da atribuição usada em
-equipe_composicao.py (ordem alfabética) — assim, o mesmo grupo aparece em
-cores diferentes nas duas figuras-par (publicações × equipe), e as duas
-figuras ficam visualmente diferenciáveis entre si, sem recorrer a paletas
-fora da identidade da tese (ver notas de estilo em equipe_composicao.py,
+A escala sequencial é construída sobre o azul do núcleo categórico Okabe-Ito
+(#0072B2), do branco ao azul saturado, e não sobre um grupo específico — a cor
+aqui não identifica o grupo de pesquisa (esse já está no eixo y), só o valor da
+célula. A figura-par de composição de equipe (equipe_composicao.py) usa uma
+escala análoga, mas ancorada num matiz diferente (vermelho Okabe-Ito), para que
+as duas matrizes de bolhas fiquem diferenciáveis entre si mesmo compartilhando
+a mesma paleta-mestra da tese (ver notas de estilo em equipe_composicao.py,
 espelhando infranodus/estilo_rede.py).
 
 Fonte dos dados: output/c4ai_matriz_grupo_ano.xlsx (crosstab gerado por
@@ -28,6 +28,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.colors import LinearSegmentedColormap, to_rgb
 
 # ──────────────────────────────────────────────────────────────────────────────
 # DADOS
@@ -41,35 +42,36 @@ GRUPOS_ORDEM = [
     "PROINDL", "MClimate", "OceanML",
 ]
 
-# Paleta categórica Okabe-Ito (colorblind-safe), na ordem de produtividade —
-# deliberadamente distinta da ordem alfabética usada em equipe_composicao.py,
-# para que cada grupo tenha cor diferente nas duas figuras-par.
-CORES_POR_GRUPO = {
-    "NLP2":       "#0072B2",  # azul
-    "KEML":       "#E69F00",  # laranja
-    "AGRIBIO":    "#009E73",  # verde
-    "AI HEALTH":  "#CC79A7",  # magenta
-    "HUMANITIES": "#56B4E9",  # azul claro
-    "PROINDL":    "#D55E00",  # vermelho
-    "MClimate":   "#F0E442",  # amarelo
-    "OceanML":    "#999999",  # cinza
-}
-
 # ──────────────────────────────────────────────────────────────────────────────
 # ESTILO (mesma identidade visual de equipe_composicao.py / estilo_rede.py)
 # ──────────────────────────────────────────────────────────────────────────────
 
 COR_TEXTO = "#404040"
 COR_NOTA = "#8a8a8a"
-COR_LEGENDA_TAMANHO = "#5a5a5a"  # cinza neutro: legenda de tamanho não usa cor de grupo
+
+# Escala sequencial monocromática (branco -> azul Okabe-Ito #0072B2), não
+# viridis. Ancorada em cor distinta da usada em equipe_composicao.py (vermelho
+# Okabe-Ito), para diferenciar as duas matrizes de bolhas entre si.
+COR_ANCORA = "#0072B2"
+CMAP_SEQUENCIAL = LinearSegmentedColormap.from_list(
+    "azul_okabe_ito", ["#ffffff", COR_ANCORA],
+)
 
 plt.rcParams["font.family"] = "DejaVu Sans"
+
+
+COR_FRAC_MIN = 0.18  # piso de saturação: evita bolhas quase brancas (invisíveis sobre o fundo)
+
+
+def cor_escala(frac: float, cmap) -> tuple:
+    """Mapeia frac (0-1) na escala, com piso de saturação para o valor mínimo
+    não desaparecer contra o fundo branco da figura."""
+    return cmap(COR_FRAC_MIN + (1 - COR_FRAC_MIN) * frac)
 
 
 def cor_texto_sobre(hex_cor: str) -> str:
     """Réplica da regra de contraste usada nas demais figuras da tese:
     branco se luminância < 0,55, cinza escuro caso contrário."""
-    from matplotlib.colors import to_rgb
     r, g, b = to_rgb(hex_cor)
     luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b
     return "white" if luminancia < 0.55 else COR_TEXTO
@@ -101,11 +103,11 @@ def plot_bolhas_publicacoes(matriz: pd.DataFrame, outdir: Path):
     tamanho_min, tamanho_max = 300, 3800
 
     for i, grupo in enumerate(grupos):
-        cor = CORES_POR_GRUPO[grupo]
         for j, ano in enumerate(anos):
             total = matriz.loc[grupo, ano]
             frac = (total - vmin) / (vmax - vmin)
             tamanho = tamanho_min + frac * (tamanho_max - tamanho_min)
+            cor = cor_escala(frac, CMAP_SEQUENCIAL)
 
             ax.scatter(
                 j, i, s=tamanho, color=cor, edgecolors="white", linewidths=1.5,
@@ -134,24 +136,12 @@ def plot_bolhas_publicacoes(matriz: pd.DataFrame, outdir: Path):
     ax.grid(True, alpha=0.2, linewidth=0.8, color=COR_NOTA)
     ax.set_axisbelow(True)
 
-    # legenda de cor (uma bolha por grupo, na cor efetivamente usada na matriz)
-    handles_grupo = [
-        ax.scatter([], [], s=180, color=CORES_POR_GRUPO[g], edgecolors="white",
-                   linewidths=1.2, label=g)
-        for g in grupos
-    ]
-    legenda_grupo = ax.legend(
-        handles=handles_grupo, loc="upper center", bbox_to_anchor=(0.5, -0.10),
-        ncol=4, frameon=False, fontsize=9.5, labelcolor=COR_TEXTO,
-        columnspacing=1.6, handletextpad=0.8, title="Grupo de pesquisa (cor)",
-        title_fontsize=10,
-    )
-    ax.add_artist(legenda_grupo)
-
-    # legenda de tamanho (cor neutra: aqui a cor já foi usada para o grupo
-    # acima — a legenda de tamanho trata só da escala). Escala reduzida (não
-    # literalmente igual à do gráfico) só para caber sem sobrepor o texto —
-    # a proporção relativa entre os três pontos é preservada.
+    # legenda de tamanho e cor combinadas (cada bolha de referência usa a cor
+    # que a escala sequencial atribui ao próprio valor, e não uma cor neutra:
+    # tamanho e cor da legenda seguem juntos a mesma escala do gráfico).
+    # Escala de tamanho reduzida (não literalmente igual à do gráfico) só para
+    # caber sem sobrepor o texto — a proporção relativa entre os pontos é
+    # preservada; a cor de cada ponto é a exata da escala, sem redução.
     legenda_tamanho_min, legenda_tamanho_max = 90, 700
     handles_tamanho = []
     for valor_ref in (10, 30, 60):
@@ -159,23 +149,23 @@ def plot_bolhas_publicacoes(matriz: pd.DataFrame, outdir: Path):
         frac = min(max(frac, 0), 1)
         tamanho = legenda_tamanho_min + frac * (legenda_tamanho_max - legenda_tamanho_min)
         handles_tamanho.append(ax.scatter(
-            [], [], s=tamanho, color=COR_LEGENDA_TAMANHO, edgecolors="white",
+            [], [], s=tamanho, color=cor_escala(frac, CMAP_SEQUENCIAL), edgecolors="white",
             linewidths=1.5, label=f"{valor_ref} publicações",
         ))
     legenda_tamanho = ax.legend(
-        handles=handles_tamanho, loc="upper center", bbox_to_anchor=(0.5, -0.24),
+        handles=handles_tamanho, loc="upper center", bbox_to_anchor=(0.5, -0.12),
         ncol=3, frameon=False, fontsize=10, labelcolor=COR_TEXTO,
         columnspacing=3.0, handletextpad=1.0,
-        title="Tamanho da bolha", title_fontsize=10,
+        title="Tamanho e cor da bolha", title_fontsize=10,
     )
 
     nota_rodape = (
-        "Cor da bolha = grupo de pesquisa (paleta categórica Okabe-Ito, à prova de daltonismo); "
-        "tamanho da bolha = número de publicações no ano. "
-        "Atribuição de cor por grupo distinta da usada na Figura 12 (composição de equipe), "
-        "para diferenciar visualmente as duas matrizes de bolhas."
+        "Tamanho e cor da bolha = número de publicações no ano (escala sequencial branco-azul, "
+        "não viridis). A cor não identifica o grupo de pesquisa, já dado pelo eixo y. "
+        "Escala ancorada em matiz distinto da usada na Figura 12 (composição de equipe, "
+        "escala branco-vermelho), para diferenciar visualmente as duas matrizes de bolhas."
     )
-    fig.text(0.02, -0.30, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
+    fig.text(0.02, -0.18, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
 
     plt.tight_layout()
     save(fig, outdir, "4_heatmap_grupo_ano_bolhas.png")

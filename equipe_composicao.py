@@ -3,12 +3,15 @@
 equipe_composicao.py — Composição de equipe por grupo do C4AI (2021–2025)
 ==========================================================================
 Figura-par da matriz de bolhas de publicações (4_heatmap_grupo_ano_bolhas.png /
-bolhas_publicacoes.py): mesma grade grupo × ano, com o tamanho da bolha indicando
-o nº de pesquisadores declarado no relatório anual à FAPESP (em vez do nº de
-publicações). A cor da bolha é categórica por grupo (Okabe-Ito, ordem alfabética),
-deliberadamente diferente da atribuição usada na figura-par de publicações (ordem
-por produtividade), para que as duas matrizes de bolhas fiquem diferenciáveis
-entre si mesmo compartilhando a mesma paleta-mestra da tese.
+bolhas_publicacoes.py): mesma grade grupo × ano, com o tamanho E a cor da bolha
+indicando o nº de pesquisadores declarado no relatório anual à FAPESP (em vez do
+nº de publicações), numa escala sequencial monocromática (branco ao vermelho
+Okabe-Ito #D55E00), não viridis. A cor não identifica o grupo de pesquisa, esse
+já dado pelo eixo y; a escala está ancorada num matiz diferente do usado na
+figura-par de publicações (azul Okabe-Ito), para que as duas matrizes de bolhas
+fiquem diferenciáveis entre si mesmo compartilhando a mesma paleta-mestra da
+tese. O gráfico de streamgraph (Figura 13, alternativa aos mesmos dados) segue
+usando a paleta categórica Okabe-Ito por grupo, sem mudança.
 
 Fonte dos dados: seções "Human resources" (relatórios 2021–2022) e "Team"
 (relatórios 2023–2025) de cada capítulo dos relatórios científicos do C4AI à FAPESP,
@@ -35,7 +38,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.colors import to_rgb
+from matplotlib.colors import LinearSegmentedColormap, to_rgb
 from scipy.interpolate import PchipInterpolator
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -114,18 +117,35 @@ CORES_OKABE_ITO = {
 # PLOT
 # ──────────────────────────────────────────────────────────────────────────────
 
-# ── Identidade visual da tese (estilo_rede.py: Okabe-Ito categórico, "bolinha"
-# com borda branca, DejaVu Sans, tinta cinza #404040 sem negrito, nota em
-# itálico #8a8a8a, sem título embutido na imagem — a legenda do LaTeX titula).
-# A cor da bolha codifica o grupo (CORES_OKABE_ITO acima), não mais uma escala
-# sequencial (viridis) redundante com o tamanho. ──────────────────────────────
+# ── Identidade visual da tese (estilo_rede.py: Okabe-Ito categórico p/ figuras
+# de rede/streamgraph, "bolinha" com borda branca, DejaVu Sans, tinta cinza
+# #404040 sem negrito, nota em itálico #8a8a8a, sem título embutido na imagem
+# — a legenda do LaTeX titula). Na matriz de bolhas (Figura 12), a cor segue
+# uma escala sequencial (branco-vermelho, ancorada no vermelho Okabe-Ito), não
+# mais categórica por grupo nem viridis. ──────────────────────────────────────
 
 COR_TEXTO = "#404040"
 COR_NOTA = "#8a8a8a"
 COR_AUSENTE = "#999999"  # cinza da paleta categórica Okabe-Ito (slot neutro)
-COR_LEGENDA_TAMANHO = "#5a5a5a"  # cinza neutro p/ legenda de tamanho (cor não é grupo aqui)
+
+# Escala sequencial monocromática (branco -> vermelho Okabe-Ito #D55E00), não
+# viridis. Ancorada em cor distinta da usada em bolhas_publicacoes.py (azul
+# Okabe-Ito), para diferenciar as duas matrizes de bolhas entre si.
+COR_ANCORA_EQUIPE = "#D55E00"
+CMAP_SEQUENCIAL_EQUIPE = LinearSegmentedColormap.from_list(
+    "vermelho_okabe_ito", ["#ffffff", COR_ANCORA_EQUIPE],
+)
 
 plt.rcParams["font.family"] = "DejaVu Sans"
+
+
+COR_FRAC_MIN = 0.18  # piso de saturação: evita bolhas quase brancas (invisíveis sobre o fundo)
+
+
+def cor_escala(frac: float, cmap) -> tuple:
+    """Mapeia frac (0-1) na escala, com piso de saturação para o valor mínimo
+    não desaparecer contra o fundo branco da figura."""
+    return cmap(COR_FRAC_MIN + (1 - COR_FRAC_MIN) * frac)
 
 
 def cor_texto_sobre(cor) -> str:
@@ -158,7 +178,6 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
     tamanho_min, tamanho_max = 400, 4200
 
     for i, grupo in enumerate(grupos):
-        cor = CORES_OKABE_ITO[grupo]
         for j, ano in enumerate(anos):
             total = totais.loc[grupo, ano]
 
@@ -171,6 +190,7 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
 
             frac = (total - vmin) / (vmax - vmin)
             tamanho = tamanho_min + frac * (tamanho_max - tamanho_min)
+            cor = cor_escala(frac, CMAP_SEQUENCIAL_EQUIPE)
 
             ax.scatter(
                 j, i, s=tamanho, color=cor, edgecolors="white", linewidths=1.5,
@@ -206,24 +226,11 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
     ax.grid(True, alpha=0.2, linewidth=0.8, color=COR_NOTA)
     ax.set_axisbelow(True)
 
-    # legenda de cor (uma bolha por grupo, na cor efetivamente usada na matriz)
-    handles_grupo = [
-        ax.scatter([], [], s=200, color=CORES_OKABE_ITO[g], edgecolors="white",
-                   linewidths=1.2, label=g)
-        for g in grupos
-    ]
-    legenda_grupo = ax.legend(
-        handles=handles_grupo, loc="upper center", bbox_to_anchor=(0.5, -0.10),
-        ncol=4, frameon=False, fontsize=9.5, labelcolor=COR_TEXTO,
-        columnspacing=1.6, handletextpad=0.8, title="Grupo de pesquisa (cor)",
-        title_fontsize=10,
-    )
-    ax.add_artist(legenda_grupo)
-
-    # legenda de tamanho (3 pontos de referência, cor neutra: aqui a cor já
-    # foi usada para o grupo acima — a legenda de tamanho trata só da escala).
-    # Escala reduzida (não literalmente igual à do gráfico) só para caber sem
-    # sobrepor o texto — a proporção relativa entre os três pontos é preservada.
+    # legenda de tamanho e cor combinadas (cada bolha de referência usa a cor
+    # que a escala sequencial atribui ao próprio valor, e não uma cor neutra).
+    # Escala de tamanho reduzida (não literalmente igual à do gráfico) só para
+    # caber sem sobrepor o texto — a proporção relativa entre os pontos é
+    # preservada; a cor de cada ponto é a exata da escala, sem redução.
     legenda_tamanho_min, legenda_tamanho_max = 90, 700
     handles_tamanho = []
     for valor_ref in (20, 60, 100):
@@ -231,7 +238,7 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
         frac = min(max(frac, 0), 1)
         tamanho = legenda_tamanho_min + frac * (legenda_tamanho_max - legenda_tamanho_min)
         handles_tamanho.append(ax.scatter(
-            [], [], s=tamanho, color=COR_LEGENDA_TAMANHO, edgecolors="white",
+            [], [], s=tamanho, color=cor_escala(frac, CMAP_SEQUENCIAL_EQUIPE), edgecolors="white",
             linewidths=1.5, label=f"{valor_ref} pesquisadores",
         ))
     handles_tamanho.append(ax.scatter(
@@ -239,22 +246,23 @@ def plot_composicao_bolhas(totais: pd.DataFrame, outdir: Path):
         label="sem capítulo de equipe próprio",
     ))
     legenda_tamanho = ax.legend(
-        handles=handles_tamanho, loc="upper center", bbox_to_anchor=(0.5, -0.22),
+        handles=handles_tamanho, loc="upper center", bbox_to_anchor=(0.5, -0.10),
         ncol=4, frameon=False, fontsize=10, labelcolor=COR_TEXTO,
-        columnspacing=2.5, handletextpad=1.0, title="Tamanho da bolha",
+        columnspacing=2.5, handletextpad=1.0, title="Tamanho e cor da bolha",
         title_fontsize=10,
     )
 
     nota_rodape = (
-        "Cor da bolha = grupo de pesquisa (paleta categórica Okabe-Ito, à prova de daltonismo); "
-        "tamanho da bolha = total de pesquisadores. Atribuição de cor por grupo distinta da usada na "
-        "matriz de bolhas de publicações (Figura 4), para diferenciar visualmente as duas figuras-par.\n"
+        "Tamanho e cor da bolha = total de pesquisadores (escala sequencial branco-vermelho, "
+        "não viridis). A cor não identifica o grupo de pesquisa, já dado pelo eixo y. Escala "
+        "ancorada em matiz distinto da usada na matriz de bolhas de publicações (Figura 4, "
+        "escala branco-azul), para diferenciar visualmente as duas figuras-par.\n"
         "* célula agrega mais de uma frente sob uma única contagem de equipe no relatório de origem, "
         "ou apresenta discrepância entre o texto do relatório e a contagem nominal — ver notas metodológicas no script.\n"
         "Escala de ano distinta da usada no heatmap de publicações (ano civil, 2020–2024): "
         "aqui o ano é o período de relatório à FAPESP (ago.–jul.), não alinhado célula a célula com a produção."
     )
-    fig.text(0.02, -0.28, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
+    fig.text(0.02, -0.20, nota_rodape, fontsize=8.5, color=COR_NOTA, style="italic", ha="left", va="top")
 
     plt.tight_layout()
     save(fig, outdir, "12_composicao_equipe_bolhas.png")
