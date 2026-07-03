@@ -81,6 +81,16 @@ python coword_analysis.py --no-html               # só PNG
 
 > Os termos são extraídos dos **títulos** (a base oficial não traz abstracts/keywords). Para uma co-word mais fiel ao método, enriqueça antes a base com `enrich_metadata.py` (busca abstracts/keywords no OpenAlex — requer internet) e rode `coword_analysis.py --input c4ai_publicacoes_enriquecido.xlsx`.
 
+### 4. Composição de equipe (bolha grupo × ano)
+
+Figura-par do heatmap de publicações (Figura 4): mesma grade grupo × ano, com o tamanho e a cor da bolha indicando o total de pesquisadores por grupo, a partir da curadoria manual dos relatórios anuais do C4AI à FAPESP (2021–2025):
+
+```bash
+python equipe_composicao.py
+```
+
+> Dados embutidos no próprio script (`TOTAIS`), com notas metodológicas para células que agregam mais de uma frente de pesquisa ou apresentam divergência entre o relatório e a contagem nominal. Saída: `12_composicao_equipe_bolhas.png`, `13_composicao_equipe_streamgraph.png` (forma alternativa/não convencional dos mesmos dados) e `c4ai_composicao_equipe.xlsx` (tabela + notas).
+
 Saídas em `output/coword/`: `10_rede_coword.png`, `11_rede_coword_temporal.png`, `rede_coword_interativa.html` e tabelas (`coword_arestas.xlsx`, `coword_nos_comunidades.xlsx`, `coword_termos_por_periodo.xlsx`).
 
 ### Argumentos
@@ -103,19 +113,23 @@ c4ai-publications/
 ├── c4ai_publicacoes.xlsx      # base canônica usada pelas análises
 ├── analise_publicacoes        # análise bibliométrica principal (Figuras 1–9)
 ├── coword_analysis.py         # co-word analysis / rede de co-ocorrência (Figuras 10–11)
+├── equipe_composicao.py       # composição de equipe por grupo, curadoria manual (Figura 12)
 ├── enrich_metadata.py         # enriquecimento opcional via OpenAlex (abstracts/keywords)
 ├── documento_analise.tex      # relatório em LaTeX
 ├── RELATORIO.md               # relatório em Markdown (com inventário de figuras)
 ├── requirements.txt
 ├── .gitignore
 ├── README.md
-├── figuras/                   # figuras usadas no relatório (1–11)
+├── figuras/                   # figuras usadas no relatório (1–13)
 └── output/                    # gerado automaticamente pelas análises
     ├── 1_ranking_grupos.png … 9_analise_concentracao.png
+    ├── 12_composicao_equipe_bolhas.png
+    ├── 13_composicao_equipe_streamgraph.png
     ├── c4ai_dados_completos_limpo.xlsx
     ├── c4ai_produtividade_todos_grupos.xlsx
     ├── c4ai_matriz_grupo_ano.xlsx
     ├── c4ai_resumo_grupos.xlsx
+    ├── c4ai_composicao_equipe.xlsx
     ├── c4ai_relatorio_executivo.txt
     └── coword/                # saídas da co-word (PNGs, HTML interativo, tabelas)
 ```

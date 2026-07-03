@@ -215,6 +215,54 @@ concentra sua produção em 2023 (\num{37} publicações), sem registros em 2024
 \label{fig:heatmap}
 \end{figure}
 
+% ── Figura 12: Composição de equipe (bolhas) ──────────────────────────────────
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{12_composicao_equipe_bolhas.png}
+\caption[Composição de equipe por grupo (2021--2025)]{%
+\textbf{Composição de equipe por grupo do C4AI, 2021--2025.}
+Figura-par da Figura~\ref{fig:heatmap}: mesma grade grupo \texttimes{} ano, com o
+tamanho e a cor da bolha (escala viridis) indicando o total de pesquisadores
+declarado no relatório anual à FAPESP, em vez do número de publicações.
+Marcadores em \texttimes{} cinza indicam grupos sem capítulo de equipe próprio
+naquele relatório --- dado ausente, não equipe de tamanho zero. \textbf{NLP2}
+lidera com folga em todos os anos (entre \num{93} e \num{110} pesquisadores),
+acompanhando sua liderança em produção observada na Figura~\ref{fig:heatmap};
+\textbf{AI HEALTH} deixa de ter capítulo próprio a partir de 2024, coincidindo
+com a queda de suas publicações a zero no mesmo ano (Figura~\ref{fig:heatmap}).
+O eixo do ano segue o período do relatório à FAPESP (ago.\ ano$-1$--jul.\ ano),
+escala distinta do ano civil de publicação usado na Figura~\ref{fig:heatmap}; as
+duas não foram alinhadas célula a célula, e permanecem como leituras
+complementares, não sobrepostas. Células marcadas com ``*'' agregam mais de uma
+frente de pesquisa sob uma única contagem de equipe no relatório de origem, ou
+registram divergência entre o texto do relatório e a contagem nominal (ver nota
+metodológica na própria figura).}
+\label{fig:composicao}
+\end{figure}
+
+% ── Figura 13: Composição de equipe (streamgraph) ─────────────────────────────
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{13_composicao_equipe_streamgraph.png}
+\caption[Composição de equipe por grupo: streamgraph (2021--2025)]{%
+\textbf{Composição de equipe por grupo do C4AI, 2021--2025 --- streamgraph.}
+Forma alternativa e não convencional à Figura~\ref{fig:composicao} para os
+mesmos dados: cada grupo é uma faixa cuja largura é o total de pesquisadores,
+empilhadas com linha de base simétrica (estilo \emph{ThemeRiver}) e curvas
+suavizadas por interpolação PCHIP entre os cinco pontos anuais conhecidos --- um
+recurso visual do formato, que não indica medição contínua entre relatórios. O
+gráfico evidencia visualmente a trajetória do centro: o predomínio de
+\textbf{NLP2} ao longo de todo o período, o encolhimento conjunto de AGRIBIO, AI
+HEALTH e HUMANITIES a partir de 2023, e a emergência de PROINDL, OceanML e
+MClimate nos dois últimos anos. \textbf{Ressalva importante}: diferentemente da
+Figura~\ref{fig:composicao}, a largura zero aqui não distingue ``grupo sem
+capítulo de equipe próprio nesse ano'' de ``zero pesquisadores'' --- este
+gráfico é deliberadamente impressionista e não substitui a leitura célula a
+célula da Figura~\ref{fig:composicao}, que mantém o símbolo de exceção para
+dado ausente.}
+\label{fig:composicao-stream}
+\end{figure}
+
 % ── Figura 5: Linhas todos os grupos ──────────────────────────────────────────
 \begin{figure}[H]
 \centering
